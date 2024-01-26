@@ -17,7 +17,5 @@ where
 
 ## Examples
 
-<p float="left">
-  <img src="/examples/ca_example1.gif" width="49%" />
-  <img src="/examples/ca_example2.gif" width="49%" /> 
-</p>
+![example for usage of the cellular automaton program with parameters RULE=30, NEIGHBORHOOD_RADIUS=1, CONSOLE_WIDTH=169, NR_ITERATIONS=30, DELAY_MS=80](examples/ca_example1.gif)
+![example for usage of the cellular automaton program with parameters RULE=?, NEIGHBORHOOD_RADIUS=2, CONSOLE_WIDTH=169, NR_ITERATIONS=100, DELAY_MS=50, RULE_IN_BITS=01101111011001101010010101111011](examples/ca_example2.gif)
