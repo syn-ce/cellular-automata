@@ -1,6 +1,6 @@
 #include <limits.h>
 #include <stdlib.h>
-#include "cellular_automata.h"
+#include "cellular_automaton.h"
 
 int main(int argc, char* argv[]) {
 
