@@ -1,5 +1,6 @@
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 
 // https://stackoverflow.com/a/28827188 // -- cross-platform sleep function
@@ -38,11 +39,12 @@ char get_value_from_neighborhood(char *state, int state_length, int index_of_cel
     return neighborhood_map[nr] == 1 ? '#' : ' ';
 }
 
-void fill_neighborhood_map(int *neighborhood_map, int neighorhood_rule, int neighborhood_radius) {
+void fill_neighborhood_map(int *neighborhood_map, char *neighborhood_rule, int neighborhood_radius) {
     int nr_neighborhood_entries = (int)pow(2, neighborhood_radius * 2 + 1);
     for (int i = 0; i < nr_neighborhood_entries; i++) {
-        neighborhood_map[i] = neighorhood_rule % 2;
-        neighorhood_rule /= 2;
+        if (neighborhood_rule[i] == '\0') {fprintf(stderr, "Not enough Bits in string; Got %i, need %i\n", i, nr_neighborhood_entries); exit(1);}
+        if (neighborhood_rule[i] != '0' && neighborhood_rule[i] != '1') {fprintf(stderr, "Invalid Bits in string; Need 0 or 1, got %c\n", neighborhood_rule[i]); exit(1);}
+        neighborhood_map[i] = neighborhood_rule[i] - '0';
     }
 }
 
@@ -68,8 +70,15 @@ void simulate_cellular_automaton_state(char *current_state, char *next_state, in
     }
 }
 
-void simulate_cellular_automaton(int neighborhood_rule, int neighborhood_radius, int display_width, int nr_iterations, int sleep_time_ms) {
+int get_string_len(char *s) {
+    int i = 0;
+    while (s[i] != '\0') i++;
+    return i;
+}
+
+void simulate_cellular_automaton(char *neighborhood_rule, int neighborhood_radius, int display_width, int nr_iterations, int sleep_time_ms) {
     int nr_neighborhood_entries = (int)pow(2.0, (double)(neighborhood_radius * 2 + 1));
+    if (nr_neighborhood_entries != get_string_len(neighborhood_rule)) {fprintf(stderr, "Unexpected length of bits-string; Was %i, should have been %i\n", get_string_len(neighborhood_rule), nr_neighborhood_entries); exit(1);}
     int neighborhood_map[nr_neighborhood_entries];
 
     fill_neighborhood_map(neighborhood_map, neighborhood_rule, neighborhood_radius);
@@ -89,7 +98,7 @@ void fill_curr_binary_nr(int nr, char *curr_binary_nr, int nr_digits) {
     }
 }
 
-void print_rules(int neighborhood_rule, int neighborhood_radius) {
+void print_rules(char *neighborhood_rule, int neighborhood_radius) {
     int nr_digits_per_nr = neighborhood_radius * 2 + 1;
     int nr_neighborhood_entries = (int)pow(2.0, (double)nr_digits_per_nr);
     int neighborhood_map[nr_neighborhood_entries];
