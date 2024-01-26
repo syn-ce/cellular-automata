@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -26,18 +27,20 @@ void sleep_ms(int milliseconds){
 }
 // --
 
-char get_value_from_neighborhood(char * state, int state_length, int index_of_cell, int *neighborhood_map) {
+char get_value_from_neighborhood(char *state, int state_length, int index_of_cell, int *neighborhood_map, int neighborhood_radius) {
     int nr = 0;
-    for (int i = index_of_cell - 1; i <= index_of_cell + 1; i++) {
-        if (i == -1) nr = nr * 2 + (state[state_length - 1] == '#' ? 1 : 0); // Wrap around edges
-        else nr = nr * 2 + (state[i % state_length] == '#' ? 1 : 0);
+    for (int i = index_of_cell - neighborhood_radius; i <= index_of_cell + neighborhood_radius; i++) {
+        int ind = i % state_length;
+        if (i < 0) ind = i + state_length;
+        nr = nr * 2 + (state[ind] == '#' ? 1 : 0);
     }
 
     return neighborhood_map[nr] == 1 ? '#' : ' ';
 }
 
-void fill_neighborhood_map(int *neighborhood_map, int neighorhood_rule) {
-    for (int i = 0; i <= 7; i++) {
+void fill_neighborhood_map(int *neighborhood_map, int neighorhood_rule, int neighborhood_radius) {
+    int nr_neighborhood_entries = (int)pow(2, neighborhood_radius * 2 + 1);
+    for (int i = 0; i < nr_neighborhood_entries; i++) {
         neighborhood_map[i] = neighorhood_rule % 2;
         neighorhood_rule /= 2;
     }
@@ -54,24 +57,49 @@ void initialize_states(char *current_state, char *next_state, int display_width)
     next_state[display_width - 1] = current_state[display_width - 1];
 }
 
-void simulate_cellular_automaton_state(char *current_state, char *next_state, int *neighborhood_map, int display_width, int nr_iterations, int sleep_time_ms) { 
+void simulate_cellular_automaton_state(char *current_state, char *next_state, int *neighborhood_map, int neighborhood_radius, int display_width, int nr_iterations, int sleep_time_ms) {
      for (int _ = 0; _ < nr_iterations; _++) {
         printf("%s\n", current_state);
         sleep_ms(sleep_time_ms);
         for (int i = 0; i < display_width; i++) {
-          next_state[i] = get_value_from_neighborhood(current_state, display_width, i, neighborhood_map);
+          next_state[i] = get_value_from_neighborhood(current_state, display_width, i, neighborhood_map, neighborhood_radius);
         }
         for (int i = 0; i < display_width; i++) current_state[i] = next_state[i];
-    }   
+    }
 }
 
-void simulate_cellular_automaton(int neighborhood_rule, int display_width, int nr_iterations, int sleep_time_ms) {
-  int neighborhood_map[8];
-    fill_neighborhood_map(neighborhood_map, neighborhood_rule);
+void simulate_cellular_automaton(int neighborhood_rule, int neighborhood_radius, int display_width, int nr_iterations, int sleep_time_ms) {
+    int nr_neighborhood_entries = (int)pow(2.0, (double)(neighborhood_radius * 2 + 1));
+    int neighborhood_map[nr_neighborhood_entries];
+
+    fill_neighborhood_map(neighborhood_map, neighborhood_rule, neighborhood_radius);
 
     char current_state[display_width + 1];
     char next_state[display_width + 1];
     initialize_states(current_state, next_state, display_width);
 
-    simulate_cellular_automaton_state(current_state, next_state, neighborhood_map, display_width, nr_iterations, sleep_time_ms);
+    simulate_cellular_automaton_state(current_state, next_state, neighborhood_map, neighborhood_radius, display_width, nr_iterations, sleep_time_ms);
+}
+
+void fill_curr_binary_nr(int nr, char *curr_binary_nr, int nr_digits) {
+    for (int i = 0; i < nr_digits; i++) {
+        int pow_2 = (int)pow(2.0, (double) nr_digits - 1 - i);
+        curr_binary_nr[i] = nr / pow_2 + '0';
+        nr = nr % pow_2;
+    }
+}
+
+void print_rules(int neighborhood_rule, int neighborhood_radius) {
+    int nr_digits_per_nr = neighborhood_radius * 2 + 1;
+    int nr_neighborhood_entries = (int)pow(2.0, (double)nr_digits_per_nr);
+    int neighborhood_map[nr_neighborhood_entries];
+    fill_neighborhood_map(neighborhood_map, neighborhood_rule, neighborhood_radius);
+
+    char curr_binary_nr[nr_digits_per_nr+1];
+    curr_binary_nr[nr_digits_per_nr] = '\0';
+
+    for (int i = 0; i < nr_neighborhood_entries; i++) {
+        fill_curr_binary_nr(i, curr_binary_nr, nr_digits_per_nr);
+        printf("%s -> %i\n", curr_binary_nr, neighborhood_map[i]);
+    }
 }
